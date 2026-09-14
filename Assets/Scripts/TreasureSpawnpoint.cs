@@ -1,0 +1,33 @@
+using System;
+using UnityEngine;
+using UnityEngine.Events;
+
+public class OnSpawnPointEventArgs : EventArgs{
+    public TreasureSpawnpoint spawnpoint { get; }
+
+    public OnSpawnPointEventArgs(TreasureSpawnpoint spawnpoint)
+    {
+        this.spawnpoint = spawnpoint;
+    }
+}
+
+public class SpawnpointCreated : UnityEvent<OnSpawnPointEventArgs> {}
+public class TreasureSpawnpoint : MonoBehaviour
+{
+    public float radius;
+    public float maxDepth;
+    public TreasureObject treasure = null;
+
+    private void Start()
+    {
+        TreasureSpawner.OnSpawnPointAdd?.Invoke(new OnSpawnPointEventArgs(this));
+    }
+
+    private void OnDrawGizmos()
+    {
+        Gizmos.color = Color.green;
+        Gizmos.DrawWireSphere(transform.position, radius);
+        Gizmos.color = Color.red;
+        Gizmos.DrawLine(transform.position, transform.position - transform.forward * maxDepth);
+    }
+}
