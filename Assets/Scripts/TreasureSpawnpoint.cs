@@ -15,8 +15,6 @@ public class SpawnpointCreated : UnityEvent<OnSpawnPointEventArgs> {}
 public class TreasureSpawnpoint : MonoBehaviour
 {
     public float radius;
-    public float maxDepth;
-    public TreasureObject treasure = null;
 
     private void Start()
     {
@@ -27,7 +25,5 @@ public class TreasureSpawnpoint : MonoBehaviour
     {
         Gizmos.color = Color.green;
         Gizmos.DrawWireSphere(transform.position, radius);
-        Gizmos.color = Color.red;
-        Gizmos.DrawLine(transform.position, transform.position - transform.forward * maxDepth);
     }
 }
