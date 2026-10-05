@@ -16,4 +16,10 @@ public class SpawnSettings : ScriptableObject
         [Header("Веса спавна каждой редкости")]
         public List<RarityWeight> rarityWeights;
         public IntRange objectRangeAmount;
+        
+        [Header("Поиск поверхности")]
+        public LayerMask groundMask;
+
+        public float raycastHeight = 10f;
+        public float raycastDistance = 50f;
 }

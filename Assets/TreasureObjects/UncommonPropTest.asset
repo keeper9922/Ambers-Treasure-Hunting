@@ -1,0 +1,26 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 55a0fee6db4dc804584ff821db6fae35, type: 3}
+  m_Name: UncommonPropTest
+  m_EditorClassIdentifier: Assembly-CSharp::TreasureObject
+  objectName: UncommonProp
+  priceRange:
+    min: 200
+    max: 1000
+  spawnDepth:
+    min: 3
+    max: 4
+  rarity: 1
+  modelPrefabs:
+  - {fileID: 7702084541893563200, guid: 8e75b02b724934d43b95eedfa84b27ce, type: 3}
+  - {fileID: 7753735581473908145, guid: d9cd8ff3aced46247b1d9789d9a0efa2, type: 3}
+  - {fileID: 7323234436104893816, guid: 0b6aa9d68efb9c647b2cc42b19d2615c, type: 3}

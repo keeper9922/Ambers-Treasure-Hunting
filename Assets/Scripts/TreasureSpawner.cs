@@ -51,19 +51,20 @@ public class TreasureSpawner : MonoBehaviour
             var random = Mathf.Ceil(Random.Range(0f, totalWeight));
             total += random;
             var spawnpoint = _spawnpoints[Random.Range(0, _spawnpoints.Count)];
-            // var u = Random.Range(0f, 1f);
-            /*var r = spawnpoint.radius * Mathf.Pow(u, 1f/3f);
-            var v = Random.Range(0f, 2*Mathf.PI);
-            var theta = 2 * Mathf.PI * v;
-            var phi = Mathf.Acos(2 * u - 1);
-            var newX = */
-            var r = spawnpoint.radius;
-            var phi = Random.Range(0f, Mathf.PI);
-            var theta = Random.Range(0f, Mathf.PI);
-            var newX = spawnpoint.transform.position.x + r * Mathf.Sin(phi) * Mathf.Cos(theta);
-            var newY = spawnpoint.transform.position.y + r * Mathf.Sin(phi) * -Mathf.Sin(theta);
-            var newZ = spawnpoint.transform.position.z + r * Mathf.Cos(phi);
-            var spawnPosition = new Vector3(newX, newY, newZ);
+            var offset = Random.insideUnitCircle * spawnpoint.radius;
+            var origin = spawnpoint.transform.position;
+            origin.x += offset.x;
+            origin.z += offset.y;
+            var rayOrigin = new Vector3(origin.x, spawnpoint.transform.position.y + levelSettings.raycastHeight, origin.z);
+            if (!Physics.Raycast(
+                    rayOrigin,
+                    Vector3.down,
+                    out var hit,
+                    levelSettings.raycastDistance,
+                    levelSettings.groundMask))
+            {
+                continue;
+            }
             var curPrefab = commonPrefab;
             if (random >= totalWeight-weights[0].weight)
             {
@@ -75,8 +76,16 @@ public class TreasureSpawner : MonoBehaviour
             {
                 curPrefab = legendaryPrefab;
             }
+            var treasure = curPrefab.GetComponent<TreasureProp>();
+            Debug.Log($"{curPrefab.name} => {treasure}");
+            var depth = Random.Range(
+                treasure.GetTreasureSpawnRange().min,
+                treasure.GetTreasureSpawnRange().max
+            );
+
+            var position = hit.point - hit.normal * depth;
             Debug.Log($"Spawnpoint {spawnpoint.name}. Weight: {random}. Prefab: {curPrefab}");
-            Object trsr = Instantiate(curPrefab, spawnPosition, Quaternion.identity);
+            Object trsr = Instantiate(curPrefab, position, Random.rotation);
         }
         Debug.LogWarning($"Total weight: {totalWeight}. Average weight: {total / _objectAmount}");
     }

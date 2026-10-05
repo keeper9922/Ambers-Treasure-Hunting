@@ -25,3 +25,8 @@ MonoBehaviour:
   objectRangeAmount:
     min: 10
     max: 100
+  groundMask:
+    serializedVersion: 2
+    m_Bits: 1
+  raycastHeight: 10
+  raycastDistance: 100
