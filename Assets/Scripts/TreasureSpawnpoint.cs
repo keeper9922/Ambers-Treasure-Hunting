@@ -23,7 +23,7 @@ public class TreasureSpawnpoint : MonoBehaviour
 
     private void OnDrawGizmos()
     {
-        Gizmos.color = Color.green;
+        Gizmos.color = Color.blue;
         Gizmos.DrawWireSphere(transform.position, radius);
     }
 }
