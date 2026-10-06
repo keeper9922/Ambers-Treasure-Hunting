@@ -2,23 +2,26 @@ using System;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
-[RequireComponent(typeof(MeshRenderer))]
+/*[RequireComponent(typeof(MeshRenderer))]
 [RequireComponent(typeof(MeshFilter))]
-[RequireComponent(typeof(Collider))]
+[RequireComponent(typeof(Collider))]*/
 public class TreasureProp : MonoBehaviour
 {
     public TreasureObject treasureObject;
-    private GameObject _curPrefab;
-    private MeshRenderer _meshRenderer;
-    private Collider _collider;
-    private MeshFilter _meshFilter;
+    /*private MeshRenderer _meshRenderer;
+    private MeshFilter _meshFilter;*/
     private void OnEnable()
     {
         var curModel = treasureObject.modelPrefabs[Random.Range(0, treasureObject.modelPrefabs.Count)];
-        _meshFilter = GetComponent<MeshFilter>();
+        var obj = Instantiate(curModel, transform.position, Random.rotation);
+        /*_meshFilter = GetComponent<MeshFilter>();
         _meshRenderer = GetComponent<MeshRenderer>();
-        _meshFilter.mesh = curModel.GetComponent<MeshFilter>().mesh;
-        _meshRenderer.sharedMaterial = new Material(curModel.GetComponent<MeshRenderer>().sharedMaterial);
+        
+        var sourceMeshFilter = curModel.GetComponentInChildren<MeshFilter>();
+        var sourceMeshRenderer = curModel.GetComponentInChildren<MeshRenderer>();
+        
+        _meshFilter.sharedMesh = sourceMeshFilter.sharedMesh;
+        _meshRenderer.sharedMaterial = sourceMeshRenderer.sharedMaterial;*/
     }
 
     public FloatRange GetTreasureSpawnRange()

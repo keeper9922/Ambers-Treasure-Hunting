@@ -21,6 +21,6 @@ MonoBehaviour:
     max: 4
   rarity: 1
   modelPrefabs:
-  - {fileID: 7702084541893563200, guid: 8e75b02b724934d43b95eedfa84b27ce, type: 3}
-  - {fileID: 7753735581473908145, guid: d9cd8ff3aced46247b1d9789d9a0efa2, type: 3}
-  - {fileID: 7323234436104893816, guid: 0b6aa9d68efb9c647b2cc42b19d2615c, type: 3}
+  - {fileID: 6826813128547072689, guid: 8e75b02b724934d43b95eedfa84b27ce, type: 3}
+  - {fileID: 8292718028833979491, guid: d9cd8ff3aced46247b1d9789d9a0efa2, type: 3}
+  - {fileID: 2029742730346127967, guid: 0b6aa9d68efb9c647b2cc42b19d2615c, type: 3}

@@ -21,8 +21,8 @@ MonoBehaviour:
     max: 2
   rarity: 0
   modelPrefabs:
-  - {fileID: 7872358059192542513, guid: 3ef52da0edaf9e945aa748ab7445ae8e, type: 3}
-  - {fileID: 4892157777416362423, guid: 89bf8f71dd4f9864d8476a3e8d223ff9, type: 3}
-  - {fileID: 3368147618264595655, guid: 52fb8632c522cbd4eb94c50494688204, type: 3}
-  - {fileID: 6007135333250182723, guid: bfe341e739db53f4c8d1b00fe1cc030c, type: 3}
+  - {fileID: 5651857624579326975, guid: 89bf8f71dd4f9864d8476a3e8d223ff9, type: 3}
+  - {fileID: 6827605575205346466, guid: 52fb8632c522cbd4eb94c50494688204, type: 3}
+  - {fileID: 2197563315145415953, guid: 3ef52da0edaf9e945aa748ab7445ae8e, type: 3}
+  - {fileID: 6466879834392165593, guid: bfe341e739db53f4c8d1b00fe1cc030c, type: 3}
   - {fileID: 3248585379308976400, guid: 7e6483b9f2c9e764cafe52f58d0c0211, type: 3}
