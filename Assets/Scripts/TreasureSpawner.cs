@@ -40,6 +40,7 @@ public class TreasureSpawner : MonoBehaviour
     // random
     private void SpawnObjectsByWeight()
     {
+        if(_spawnpoints.Count <= 0) return;
         var weights = levelSettings.rarityWeights;
         var totalWeight = levelSettings.rarityWeights.Sum(rarity => rarity.weight);
         var total = 0f;
@@ -48,8 +49,6 @@ public class TreasureSpawner : MonoBehaviour
             Debug.Log($"{r.rarity} => {r.weight} => {totalWeight-r.weight}");
         }
         for(var i = 0; i < _objectAmount; i++){
-            var random = Mathf.Ceil(Random.Range(0f, totalWeight));
-            total += random;
             var spawnpoint = _spawnpoints[Random.Range(0, _spawnpoints.Count)];
             var offset = Random.insideUnitCircle * spawnpoint.radius;
             var origin = spawnpoint.transform.position;
@@ -65,17 +64,30 @@ public class TreasureSpawner : MonoBehaviour
             {
                 continue;
             }
+            
+            var random = Random.Range(0f, totalWeight);
+            total += random;
+            var cumulativeWeight = 0f;
             var curPrefab = commonPrefab;
-            if (random >= totalWeight-weights[0].weight)
+            foreach (var rarity in weights)
             {
-                curPrefab = uncommonPrefab;
-            }else if (random >= totalWeight-weights[1].weight)
-            {
-                curPrefab = rarePrefab;
-            }else if (random >= totalWeight-weights[2].weight)
-            {
-                curPrefab = legendaryPrefab;
+                cumulativeWeight += rarity.weight;
+                if (random >= cumulativeWeight)
+                    continue;
+                
+                curPrefab = rarity.rarity switch
+                {
+                    TreasureRarity.Common => commonPrefab,
+                    TreasureRarity.Uncommon => uncommonPrefab,
+                    TreasureRarity.Rare => rarePrefab,
+                    TreasureRarity.Legendary => legendaryPrefab,
+                    _ => commonPrefab
+                };
+                
+                break;
+                
             }
+            
             var treasure = curPrefab.GetComponent<TreasureProp>();
             Debug.Log($"{curPrefab.name} => {treasure}");
             var depth = Random.Range(
@@ -89,4 +101,6 @@ public class TreasureSpawner : MonoBehaviour
         }
         Debug.LogWarning($"Total weight: {totalWeight}. Average weight: {total / _objectAmount}");
     }
+    
+    
 }
