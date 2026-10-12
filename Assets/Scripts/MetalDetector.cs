@@ -8,6 +8,7 @@ public class MetalDetector : MonoBehaviour
     public float maxRadius = 20f;
     public LayerMask treasureLayerMask;
     private Collider[] _treasureColliders;
+    private Collider _treasureCollider;
     public event Action<float> OnSignalChanged;
     public event Action<GameObject> OnTreasureDetected;
     public event Action<bool> OnModeChanged;
@@ -46,11 +47,39 @@ public class MetalDetector : MonoBehaviour
     {
         _detectionTimer += Time.deltaTime;
 
-        if (_detectionTimer >= detectionInterval)
+        if (!(_detectionTimer >= detectionInterval)) return;
+        _detectionTimer -= detectionInterval;
+        Physics.OverlapSphereNonAlloc(transform.position, maxRadius, _treasureColliders, treasureLayerMask);
+        if (_treasureColliders == null || _treasureColliders.Length == 0) return;
+        var distance = FindNearestObject(_treasureColliders, out _treasureCollider);
+        DetectTreasure(_treasureCollider.gameObject);
+        ComputeNormalSignal(distance);
+        UpdateSignal(distance);
+    }
+    
+    private float FindNearestObject(Collider[] colliders, out Collider closestCollider)
+    {
+        Collider nearest = null;
+        var minDistanceSqr = float.MaxValue;
+        var detectorPosition = transform.position;
+
+        foreach (var col in colliders)
         {
-            _detectionTimer -= detectionInterval;
-            Physics.OverlapSphereNonAlloc(transform.position, maxRadius, _treasureColliders, treasureLayerMask);
+            var distanceSqr =
+                (col.transform.position - detectorPosition).sqrMagnitude;
+
+            if (!(distanceSqr < minDistanceSqr)) continue;
+            minDistanceSqr = distanceSqr;
+            nearest = col;
         }
+
+        closestCollider = nearest;
+        return minDistanceSqr;
+    }
+
+    private float ComputeNormalSignal(float distance)
+    {
+        return Mathf.Max(0, 1 - distance / maxRadius);
     }
 
     private void OnDrawGizmos()
