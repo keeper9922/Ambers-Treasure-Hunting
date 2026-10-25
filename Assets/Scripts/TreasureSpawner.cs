@@ -6,7 +6,6 @@ using UnityEngine.Events;
 using Object = UnityEngine.Object;
 using Random = UnityEngine.Random;
 
-
 public class TreasureSpawner : MonoBehaviour
 {
     private readonly List<TreasureSpawnpoint> _spawnpoints = new() { };
@@ -95,7 +94,7 @@ public class TreasureSpawner : MonoBehaviour
                 treasure.GetTreasureSpawnRange().max
             );
 
-            var position = hit.point - hit.normal * depth;
+            var position = new Vector3(hit.point.x, hit.point.y - depth, hit.point.z); // hit.point - hit.normal * depth;
             Debug.Log($"Spawnpoint {spawnpoint.name}. Weight: {random}. Prefab: {curPrefab}");
             Object trsr = Instantiate(curPrefab, position, Random.rotation);
         }
