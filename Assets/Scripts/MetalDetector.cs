@@ -6,7 +6,8 @@ using UnityEngine.Serialization;
 public enum ScanMode
 {
     Standard,
-    Gold
+    Gold,
+    Disabled
 }
 public class MetalDetector : MonoBehaviour
 {
@@ -14,30 +15,26 @@ public class MetalDetector : MonoBehaviour
     [Header("Settings")]
     public float maxRadius = 20f;
     public LayerMask treasureLayerMask;
-    private readonly Collider[] _treasureColliders = new Collider[6];
+    private readonly Collider[] _treasureColliders = new Collider[12];
     private Collider _treasure;
     public event Action<float> OnSignalChanged;
     public event Action<GameObject> OnTreasureDetected;
     public event Action<bool> OnModeChanged;
 
     private float _currentSignal;
-    private bool _isActive;
+    private ScanMode _currentScanMode = ScanMode.Disabled;
 
-    public void SetActive(bool active)
+    public void SetMode(ScanMode mode)
     {
-        if (_isActive == active)
-            return;
-
-        _isActive = active;
-
-        OnModeChanged?.Invoke(_isActive);
+        _currentScanMode = mode;
+        MetalDetectorEvents.OnModeChanged(_currentScanMode);
     }
 
     private void UpdateSignal(float signal)
     {
         if (Mathf.Approximately(_currentSignal, signal))
             return;
-
+    
         _currentSignal = signal;
         OnSignalChanged?.Invoke(_currentSignal);
     }
@@ -52,7 +49,7 @@ public class MetalDetector : MonoBehaviour
 
     private void Start()
     {
-        SetActive(true);
+        OnModeChanged?.Invoke(true);
     }
 
     private void Update()

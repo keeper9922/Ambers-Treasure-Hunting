@@ -7,17 +7,17 @@ public static class MetalDetectorEvents
     public static event Action<ScanMode> ModeChanged;
     public static event Action<bool> ScanStateChanged;
 
-    private static void OnScanStateChanged(bool obj)
+    public static void OnScanStateChanged(bool obj)
     {
         ScanStateChanged?.Invoke(obj);
     }
 
-    private static void OnModeChanged(ScanMode obj)
+    public static void OnModeChanged(ScanMode obj)
     {
         ModeChanged?.Invoke(obj);
     }
 
-    private static void OnDetectionChanged(ScanResult? obj)
+    public static void OnDetectionChanged(ScanResult? obj)
     {
         DetectionChanged?.Invoke(obj);
     }
