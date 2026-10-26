@@ -6,6 +6,7 @@ public static class MetalDetectorEvents
     public static event Action<ScanResult?> DetectionChanged;
     public static event Action<ScanMode> ModeChanged;
     public static event Action<bool> ScanStateChanged;
+    public static event Action<float> OnSignalChanged;
 
     public static void OnScanStateChanged(bool obj)
     {
@@ -20,6 +21,11 @@ public static class MetalDetectorEvents
     public static void OnDetectionChanged(ScanResult? obj)
     {
         DetectionChanged?.Invoke(obj);
+    }
+
+    public static void OnOnSignalChanged(float obj)
+    {
+        OnSignalChanged?.Invoke(obj);
     }
 }
 
