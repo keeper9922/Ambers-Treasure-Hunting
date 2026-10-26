@@ -26,4 +26,7 @@ public class ScanConeConfig
     [field: SerializeField]
     public Color DebugColor { get; private set; } = Color.white;
     
+    [field: SerializeField]
+    public bool EnableDebugDraw { get; private set; } = true;
+    
 }

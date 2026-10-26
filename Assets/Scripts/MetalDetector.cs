@@ -26,7 +26,7 @@ public class MetalDetector : MonoBehaviour
     private ScanResult? _currentScan;
 
     private float _currentSignal;
-    private ScanMode _currentScanMode = ScanMode.Disabled;
+    private ScanMode _currentScanMode = ScanMode.Standard;
     
     private void Awake()
     {
@@ -112,8 +112,12 @@ public class MetalDetector : MonoBehaviour
             sphereRadius,
             _treasureColliders,
             treasureLayerMask,
-            QueryTriggerInteraction.Ignore);
+            QueryTriggerInteraction.Collide);
+        
+        Debug.LogWarning(count);
+        
         if(count >= bufferSize) Debug.LogWarning("Результат поиска потенциально неполон.");
+        
         Transform nearest = null;
         var nearestDistanceSqr = float.MaxValue;
         for (var i = 0; i < count; i++)
@@ -136,15 +140,13 @@ public class MetalDetector : MonoBehaviour
         if (!nearest)
             return null;
         
-        Debug.DrawLine(apex, nearest.position);
-        
         return new ScanResult(
             config.Id,
             nearest,
             Mathf.Sqrt(nearestDistanceSqr));
     }
 
-    private bool IsInsideCone(Vector3 point, Vector3 apex, Vector3 direction, float height, float radius)
+    private static bool IsInsideCone(Vector3 point, Vector3 apex, Vector3 direction, float height, float radius)
     {
         var to = point - apex; // to point
         var dot = Vector3.Dot(direction, to); // distance
@@ -165,11 +167,15 @@ public class MetalDetector : MonoBehaviour
         foreach (var cone in cones)
         {
             Gizmos.color = cone.DebugColor;
-            Gizmos.DrawLine(transform.position, transform.position + Vector3.down * cone.Height + Vector3.right * cone.Radius);
-            Gizmos.DrawLine(transform.position, transform.position + Vector3.down * cone.Height + Vector3.left * cone.Radius);
-            Gizmos.DrawLine(transform.position, transform.position + Vector3.down * cone.Height + Vector3.back * cone.Radius);
-            Gizmos.DrawLine(transform.position, transform.position + Vector3.down * cone.Height + Vector3.forward * cone.Radius);
+            Gizmos.DrawLine(transform.position + cone.OriginOffset, transform.position + Vector3.down * cone.Height + Vector3.right * cone.Radius);
+            Gizmos.DrawLine(transform.position + cone.OriginOffset, transform.position + Vector3.down * cone.Height + Vector3.left * cone.Radius);
+            Gizmos.DrawLine(transform.position + cone.OriginOffset, transform.position + Vector3.down * cone.Height + Vector3.back * cone.Radius);
+            Gizmos.DrawLine(transform.position + cone.OriginOffset, transform.position + Vector3.down * cone.Height + Vector3.forward * cone.Radius);
             DrawGizmoCircle(transform.position + Vector3.down * cone.Height, Vector3.down, cone.Radius);
+            Gizmos.DrawSphere(transform.position + cone.OriginOffset, Mathf.Sqrt(cone.Height * cone.Height + cone.Radius * cone.Radius));
+            Gizmos.color = Color.red;
+            if (_currentScan != null)
+                Gizmos.DrawLine(transform.position + cone.OriginOffset, _currentScan.Value.Target.position);
         }
         // Gizmos.color = Color.red;
         // Gizmos.DrawWireSphere(transform.position, maxRadius);
@@ -180,16 +186,16 @@ public class MetalDetector : MonoBehaviour
     
     private void DrawGizmoCircle(Vector3 circleCenter, Vector3 circleNormal, float circleRadius, int segments = 32)
     {
-        Vector3 radiusVector = Mathf.Abs(Vector3.Dot(circleNormal, Vector3.right)) - 1f <= Mathf.Epsilon 
+        var radiusVector = Mathf.Abs(Vector3.Dot(circleNormal, Vector3.right)) - 1f <= Mathf.Epsilon 
             ? Vector3.Cross(circleNormal, Vector3.forward).normalized 
             : Vector3.Cross(circleNormal, Vector3.right).normalized;
         radiusVector *= circleRadius;
-        float angleBetweenSegments = 360f / segments;
-        Vector3 previousCircumferencePoint = circleCenter + radiusVector;
-        for (int i = 0; i < segments; ++i)
+        var angleBetweenSegments = 360f / segments;
+        var previousCircumferencePoint = circleCenter + radiusVector;
+        for (var i = 0; i < segments; ++i)
         {
             radiusVector = Quaternion.AngleAxis(angleBetweenSegments, circleNormal) * radiusVector;
-            Vector3 newCircumferencePoint = circleCenter + radiusVector;
+            var newCircumferencePoint = circleCenter + radiusVector;
             Gizmos.DrawLine(previousCircumferencePoint, newCircumferencePoint);
             previousCircumferencePoint = newCircumferencePoint;
         }

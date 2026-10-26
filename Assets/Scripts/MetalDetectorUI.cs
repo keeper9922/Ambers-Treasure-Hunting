@@ -14,10 +14,7 @@ public class MetalDetectorUI : MonoBehaviour
     {
         if (detector == null)
             return;
-
-        // detector.OnSignalChanged += HandleSignalChanged;
-        // detector.OnTreasureDetected += HandleTreasureDetected;
-        // detector.OnModeChanged += HandleModeChanged;
+        
         MetalDetectorEvents.OnSignalChanged += HandleSignalChanged;
         MetalDetectorEvents.ModeChanged += HandleModeChanged;
         MetalDetectorEvents.DetectionChanged += HandleTreasureDetected;
@@ -32,9 +29,6 @@ public class MetalDetectorUI : MonoBehaviour
         MetalDetectorEvents.OnSignalChanged -= HandleSignalChanged;
         MetalDetectorEvents.ModeChanged -= HandleModeChanged;
         MetalDetectorEvents.DetectionChanged -= HandleTreasureDetected;
-        // detector.OnSignalChanged -= HandleSignalChanged;
-        // detector.OnTreasureDetected -= HandleTreasureDetected;
-        // detector.OnModeChanged -= HandleModeChanged;
     }
 
     private void HandleSignalChanged(float signal)
@@ -69,9 +63,6 @@ public class MetalDetectorUI : MonoBehaviour
                 statusText.text = "Ошибка режима";
                 throw new ArgumentOutOfRangeException(nameof(mode), mode, null);
         }
-        // statusText.text = active
-        //     ? "Металлоискатель включён"
-        //     : "Металлоискатель выключен";
     }
         
 }
