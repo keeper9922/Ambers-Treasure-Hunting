@@ -32,7 +32,6 @@ public static class MetalDetectorEvents
 public readonly struct ScanResult
 {
     public readonly int ConeId;
-    private readonly Transform _target;
     public readonly float Distance;
 
     public ScanResult(
@@ -41,9 +40,10 @@ public readonly struct ScanResult
         float distance)
     {
         ConeId = coneId;
-        _target = target;
+        Target = target;
         Distance = distance;
     }
 
-    public bool HasTarget => _target != null;
+    public bool HasTarget => Target != null;
+    public Transform Target { get; }
 }

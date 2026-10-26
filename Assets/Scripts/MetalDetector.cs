@@ -1,30 +1,69 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.Serialization;
 
 public enum ScanMode
 {
+    Disabled,
     Standard,
     Gold,
-    Disabled
+    Precise,
 }
 public class MetalDetector : MonoBehaviour
 {
     [SerializeField] private List<ScanConeConfig> cones = new();
     [Header("Settings")]
-    public float maxRadius = 20f;
-    public LayerMask treasureLayerMask;
-    private readonly Collider[] _treasureColliders = new Collider[12];
-    private Collider _treasure;
-    public event Action<float> OnSignalChanged;
-    public event Action<GameObject> OnTreasureDetected;
-    public event Action<bool> OnModeChanged;
+    [SerializeField]
+    private LayerMask treasureLayerMask;
+
+    [SerializeField, Min(1)]
+    private int bufferSize = 64;
+
+    private Collider[] _treasureColliders;
+
+    private ScanResult? _currentScan;
 
     private float _currentSignal;
     private ScanMode _currentScanMode = ScanMode.Disabled;
+    
+    private void Awake()
+    {
+        _treasureColliders = new Collider[bufferSize];
+    }
+    
+    [SerializeField] private float detectionInterval = 0.5f;
+    private float _detectionTimer;
 
-    public void SetMode(ScanMode mode)
+    private void Start()
+    {
+        SetMode(ScanMode.Standard);
+    }
+
+    private void Update()
+    {
+        _detectionTimer += Time.deltaTime;
+
+        if (!(_detectionTimer >= detectionInterval)) return;
+        _detectionTimer -= detectionInterval;
+        
+        var scanConfig = cones.FirstOrDefault(s => s.Mode == _currentScanMode);
+        _currentScan = FindNearestTreasure(scanConfig);
+        DetectTreasure(_currentScan);
+        // Physics.OverlapSphereNonAlloc(transform.position, maxRadius, _treasureColliders, treasureLayerMask, 
+        //     QueryTriggerInteraction.Collide);
+        // if (!_treasureColliders[0]) return;
+        // _treasure = FindNearestObject(_treasureColliders);
+        // if (!_treasure) return;
+        // DetectTreasure(_treasure.gameObject);
+        // var distance = Vector3.Distance(_treasure.transform.position, transform.position);
+        // var signal = ComputeNormalSignal(distance);
+        // UpdateSignal(signal);
+        // Debug.Log("Object: " + treasure.name + "; Distance: " + distance + "; Signal: " + signal);
+    }
+
+    private void SetMode(ScanMode mode)
     {
         _currentScanMode = mode;
         MetalDetectorEvents.OnModeChanged(_currentScanMode);
@@ -36,65 +75,73 @@ public class MetalDetector : MonoBehaviour
             return;
     
         _currentSignal = signal;
-        OnSignalChanged?.Invoke(_currentSignal);
+        MetalDetectorEvents.OnOnSignalChanged(signal);
     }
 
-    private void DetectTreasure(GameObject treasure)
+    private void DetectTreasure(ScanResult? next)
     {
-        OnTreasureDetected?.Invoke(treasure);
-    }
-    
-    [SerializeField] private float detectionInterval = 0.5f;
-    private float _detectionTimer;
+        var changed =
+            _currentScan.HasValue != next.HasValue;
 
-    private void Start()
-    {
-        OnModeChanged?.Invoke(true);
-    }
-
-    private void Update()
-    {
-        _detectionTimer += Time.deltaTime;
-
-        if (!(_detectionTimer >= detectionInterval)) return;
-        _detectionTimer -= detectionInterval;
-        Physics.OverlapSphereNonAlloc(transform.position, maxRadius, _treasureColliders, treasureLayerMask, 
-            QueryTriggerInteraction.Collide);
-        if (!_treasureColliders[0]) return;
-        _treasure = FindNearestObject(_treasureColliders);
-        if (!_treasure) return;
-        DetectTreasure(_treasure.gameObject);
-        var distance = Vector3.Distance(_treasure.transform.position, transform.position);
-        var signal = ComputeNormalSignal(distance);
-        UpdateSignal(signal);
-        // Debug.Log("Object: " + treasure.name + "; Distance: " + distance + "; Signal: " + signal);
-    }
-    
-    private Collider FindNearestObject(Collider[] colliders)
-    {
-        if (!colliders[0]) return null;
-        Collider nearest = null;
-        var minDistance = float.MaxValue;
-        var detectorPosition = transform.position;
-        // Debug.LogWarning("Finding distance:");
-        foreach (var col in colliders)
+        if (!changed && _currentScan.HasValue)
         {
-            var distance =
-                Vector3.Distance(col.transform.position, detectorPosition);
-            // Debug.DrawLine(detectorPosition, col.transform.position, Color.red);
-            // Debug.Log(col.name + " = " + distance);
-            if (!(distance < minDistance)) continue;
-            minDistance = distance;
-            
-            nearest = col;
+            if (next != null)
+                changed =
+                    _currentScan.Value.Target != next.Value.Target 
+                    || 
+                    _currentScan.Value.ConeId != next.Value.ConeId;
         }
-        
-        return nearest;
+
+        if (!changed)
+            return;
+
+        _currentScan = next;
+        MetalDetectorEvents.OnDetectionChanged(_currentScan);
     }
 
-    private float ComputeNormalSignal(float distance)
+    private ScanResult? FindNearestTreasure(ScanConeConfig config)
     {
-        return Mathf.Max(0, 1 - distance / maxRadius);
+        var height = config.Height;
+        var radius = config.Radius;
+        var apex = transform.TransformPoint(config.OriginOffset);
+        var direction = transform.TransformDirection(config.LocalDirection);
+        direction.Normalize();
+        var sphereRadius = Mathf.Sqrt(height * height + radius * radius);
+        var count = Physics.OverlapSphereNonAlloc(
+            apex,
+            sphereRadius,
+            _treasureColliders,
+            treasureLayerMask,
+            QueryTriggerInteraction.Ignore);
+        if(count >= bufferSize) Debug.LogWarning("Результат поиска потенциально неполон.");
+        Transform nearest = null;
+        var nearestDistanceSqr = float.MaxValue;
+        for (var i = 0; i < count; i++)
+        {
+            var candidate = _treasureColliders[i];
+
+            if (!candidate)
+                continue;
+            
+            var target = candidate.transform;
+            var point = candidate.ClosestPoint(apex);
+            if (!IsInsideCone(point, apex, direction, height, radius)) continue;
+            var distanceSqr = (target.position - apex).sqrMagnitude;
+            if (distanceSqr >= nearestDistanceSqr)
+                continue;
+            
+            nearestDistanceSqr = distanceSqr;
+            nearest = target;
+        }
+        if (!nearest)
+            return null;
+        
+        Debug.DrawLine(apex, nearest.position);
+        
+        return new ScanResult(
+            config.Id,
+            nearest,
+            Mathf.Sqrt(nearestDistanceSqr));
     }
 
     private bool IsInsideCone(Vector3 point, Vector3 apex, Vector3 direction, float height, float radius)
@@ -111,6 +158,7 @@ public class MetalDetector : MonoBehaviour
         return radialOffset.sqrMagnitude
                <= allowedRadius * allowedRadius;
     }
+    
 
     private void OnDrawGizmos()
     {
@@ -146,4 +194,5 @@ public class MetalDetector : MonoBehaviour
             previousCircumferencePoint = newCircumferencePoint;
         }
     }
+    
 }
