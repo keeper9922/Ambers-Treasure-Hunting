@@ -3,18 +3,24 @@ using UnityEngine;
 
 public static class MetalDetectorEvents
 {
-    public static event Action<ScanResult> TargetDetected;
-    public static event Action<ScanResult> TargetUpdated;
-    public static event Action<string> TargetLost;
+    public static event Action<ScanResult?> DetectionChanged;
+    public static event Action<ScanMode> ModeChanged;
+    public static event Action<bool> ScanStateChanged;
 
-    public static void RaiseDetected(ScanResult result)
-        => TargetDetected?.Invoke(result);
+    private static void OnScanStateChanged(bool obj)
+    {
+        ScanStateChanged?.Invoke(obj);
+    }
 
-    public static void RaiseUpdated(ScanResult result)
-        => TargetUpdated?.Invoke(result);
+    private static void OnModeChanged(ScanMode obj)
+    {
+        ModeChanged?.Invoke(obj);
+    }
 
-    public static void RaiseLost(string targetId)
-        => TargetLost?.Invoke(targetId);
+    private static void OnDetectionChanged(ScanResult? obj)
+    {
+        DetectionChanged?.Invoke(obj);
+    }
 }
 
 public readonly struct ScanResult
