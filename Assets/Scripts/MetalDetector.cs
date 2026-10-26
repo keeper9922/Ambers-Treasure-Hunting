@@ -1,9 +1,16 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Serialization;
 
+public enum ScanMode
+{
+    Standard,
+    Gold
+}
 public class MetalDetector : MonoBehaviour
 {
+    [SerializeField] private List<ScanConeConfig> cones = new();
     [Header("Settings")]
     public float maxRadius = 20f;
     public LayerMask treasureLayerMask;
@@ -77,7 +84,7 @@ public class MetalDetector : MonoBehaviour
         {
             var distance =
                 Vector3.Distance(col.transform.position, detectorPosition);
-            Debug.DrawLine(detectorPosition, col.transform.position, Color.red);
+            // Debug.DrawLine(detectorPosition, col.transform.position, Color.red);
             // Debug.Log(col.name + " = " + distance);
             if (!(distance < minDistance)) continue;
             minDistance = distance;
@@ -93,12 +100,53 @@ public class MetalDetector : MonoBehaviour
         return Mathf.Max(0, 1 - distance / maxRadius);
     }
 
+    private bool IsInsideCone(Vector3 point, Vector3 apex, Vector3 direction, float height, float radius)
+    {
+        var to = point - apex; // to point
+        var dot = Vector3.Dot(direction, to); // distance
+        if (dot < 0 || dot > height) return false;
+        var radialOffset =
+            to - direction * dot;
+
+        var allowedRadius =
+            radius * dot / height;
+
+        return radialOffset.sqrMagnitude
+               <= allowedRadius * allowedRadius;
+    }
+
     private void OnDrawGizmos()
     {
+        foreach (var cone in cones)
+        {
+            Gizmos.color = cone.DebugColor;
+            Gizmos.DrawLine(transform.position, transform.position + Vector3.down * cone.Height + Vector3.right * cone.Radius);
+            Gizmos.DrawLine(transform.position, transform.position + Vector3.down * cone.Height + Vector3.left * cone.Radius);
+            Gizmos.DrawLine(transform.position, transform.position + Vector3.down * cone.Height + Vector3.back * cone.Radius);
+            Gizmos.DrawLine(transform.position, transform.position + Vector3.down * cone.Height + Vector3.forward * cone.Radius);
+            DrawGizmoCircle(transform.position + Vector3.down * cone.Height, Vector3.down, cone.Radius);
+        }
         // Gizmos.color = Color.red;
         // Gizmos.DrawWireSphere(transform.position, maxRadius);
-        if (!_treasureColliders[0] || !_treasureColliders[1]) return;
-        if (!_treasure) return;
-        Gizmos.DrawLine(transform.position, _treasure.transform.position);
+        // if (!_treasureColliders[0] || !_treasureColliders[1]) return;
+        // if (!_treasure) return;
+        // Gizmos.DrawLine(transform.position, _treasure.transform.position);
+    }
+    
+    private void DrawGizmoCircle(Vector3 circleCenter, Vector3 circleNormal, float circleRadius, int segments = 32)
+    {
+        Vector3 radiusVector = Mathf.Abs(Vector3.Dot(circleNormal, Vector3.right)) - 1f <= Mathf.Epsilon 
+            ? Vector3.Cross(circleNormal, Vector3.forward).normalized 
+            : Vector3.Cross(circleNormal, Vector3.right).normalized;
+        radiusVector *= circleRadius;
+        float angleBetweenSegments = 360f / segments;
+        Vector3 previousCircumferencePoint = circleCenter + radiusVector;
+        for (int i = 0; i < segments; ++i)
+        {
+            radiusVector = Quaternion.AngleAxis(angleBetweenSegments, circleNormal) * radiusVector;
+            Vector3 newCircumferencePoint = circleCenter + radiusVector;
+            Gizmos.DrawLine(previousCircumferencePoint, newCircumferencePoint);
+            previousCircumferencePoint = newCircumferencePoint;
+        }
     }
 }
